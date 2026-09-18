@@ -10,7 +10,6 @@
             --kfc-red: #e4002b;
             --kfc-dark-red: #b80022;
             --bg-gray: #f4f6f9;
-            --card-border: #e0e0e0;
         }
 
         body {
@@ -36,13 +35,24 @@
             margin: 0 0 5px 0;
             font-size: 28px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         header p {
             color: #666;
             margin: 0;
             font-size: 14px;
+        }
+
+        .alert-banner {
+            display: none;
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            padding: 12px 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 500;
         }
 
         .store-selector-card {
@@ -76,11 +86,6 @@
             background-color: #fff;
         }
 
-        select:focus, input[type="text"]:focus {
-            outline: none;
-            border-color: var(--kfc-red);
-        }
-
         .grid-3 {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -95,11 +100,6 @@
             text-align: center;
             border: 2px dashed #ccc;
             margin-bottom: 25px;
-            transition: border-color 0.2s;
-        }
-
-        .upload-card:hover {
-            border-color: var(--kfc-red);
         }
 
         .upload-card input[type="file"] {
@@ -116,7 +116,6 @@
             font-weight: bold;
             font-size: 14px;
             margin-top: 10px;
-            transition: background 0.2s;
         }
 
         .custom-file-btn:hover {
@@ -129,7 +128,6 @@
             align-items: center;
             margin-bottom: 15px;
             gap: 10px;
-            flex-wrap: wrap;
         }
 
         .search-box {
@@ -152,10 +150,6 @@
             font-weight: 600;
         }
 
-        .btn-secondary:hover {
-            background: #2d3748;
-        }
-
         .btn-success {
             background: #28a745;
             color: white;
@@ -165,10 +159,6 @@
             cursor: pointer;
             font-size: 13px;
             font-weight: 600;
-        }
-
-        .btn-success:hover {
-            background: #218838;
         }
 
         .table-container {
@@ -191,17 +181,12 @@
             padding: 12px;
             border-bottom: 2px solid #eee;
             text-align: left;
-            white-space: nowrap;
         }
 
         td {
             padding: 10px 12px;
             border-bottom: 1px solid #eee;
             color: #333;
-        }
-
-        tr:hover {
-            background-color: #fcfcfc;
         }
 
         .copy-btn {
@@ -214,18 +199,10 @@
             font-size: 12px;
         }
 
-        .copy-btn:hover {
-            background: var(--kfc-dark-red);
-        }
-
         .link-text {
             color: #0066cc;
             text-decoration: none;
             font-weight: 500;
-        }
-
-        .link-text:hover {
-            text-decoration: underline;
         }
 
         .empty-state {
@@ -242,6 +219,8 @@
         <h1>KFC Survey Link Generator</h1>
         <p>Select store location & upload your sales report file</p>
     </header>
+
+    <div id="alertBanner" class="alert-banner"></div>
 
     <div class="store-selector-card">
         <div class="form-group">
@@ -419,9 +398,35 @@
         reader.readAsArrayBuffer(file);
     });
 
+    function detectStoreFromData(rows) {
+        for (let row of rows) {
+            const orderId = String(row['Order ID'] || row['Receipt No.'] || row['Check No'] || '');
+            for (let sapCode in STORES) {
+                if (orderId.toUpperCase().startsWith(sapCode)) {
+                    return sapCode;
+                }
+            }
+        }
+        return null;
+    }
+
     function processRows(rows) {
         const tbody = document.querySelector('#outputTable tbody');
         tbody.innerHTML = '';
+        const alertBanner = document.getElementById('alertBanner');
+
+        // Store Auto-Detection Check
+        const detectedSap = detectStoreFromData(rows);
+        const selectedSap = document.getElementById('storeSelect').value;
+
+        if (detectedSap && detectedSap !== selectedSap) {
+            document.getElementById('storeSelect').value = detectedSap;
+            updateStoreFields();
+            alertBanner.style.display = 'block';
+            alertBanner.innerHTML = `⚠️ <strong>Store Mismatch Corrected:</strong> Uploaded file contains orders for <strong>${detectedSap}</strong>. Automatically switched store selection from <strong>${selectedSap}</strong> to <strong>${detectedSap}</strong>.`;
+        } else {
+            alertBanner.style.display = 'none';
+        }
 
         const champId = document.getElementById('champId').value;
         let validRowsCount = 0;
