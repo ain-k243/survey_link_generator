@@ -1,1 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KFC Survey Link Generator</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --kfc-red: #e4002b;
+            --kfc-dark-red: #b80022;
+            --bg-gray: #f4f6f9;
+            --card-border: #e0e0e0;
+        }
 
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-gray);
+            margin: 0;
+            padding: 25px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        header h1 {
+            color: var(--kfc-red);
+            margin: 0 0 5px 0;
+            font-size: 28px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        header p {
+            color: #666;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .store-selector-card {
+            background: #fff;
+            padding: 20px 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
+            border-top: 4px solid var(--kfc-red);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 6px;
+            font-size: 14px;
+            color: #444;
+        }
+
+        select, input[type="text"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+
+        select:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: var(--kfc-red);
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .upload-card {
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            text-align: center;
+            border: 2px dashed #ccc;
+            margin-bottom: 25px;
+            transition: border-color 0.2s;
+        }
+
+        .upload-card:hover {
+            border-color: var(--kfc-red);
+        }
+
+        .upload-card input[type="file"] {
+            display: none;
+        }
+
+        .custom-file-btn {
+            display: inline-block;
+            background: var(--kfc-red);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+
+        .custom-file-btn:hover {
+            background: var(--kfc-dark-red);
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            max-width: 300px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-secondary {
+            background: #4a5568;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .btn-secondary:hover {
+            background: #2d3748;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            background: #f8f9fa;
+            color: #444;
+            font-weight: bold;
+            padding: 12px;
+            border-bottom: 2px solid #eee;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee;
+            color: #333;
+        }
+
+        tr:hover {
+            background-color: #fcfcfc;
+        }
+
+        .copy-btn {
+            background: var(--kfc-red);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .copy-btn:hover {
+            background: var(--kfc-dark-red);
+        }
+
+        .link-text {
+            color: #0066cc;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .link-text:hover {
+            text-decoration: underline;
+        }
+
+        .empty-state {
+            padding: 40px;
+            text-align: center;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>KFC Survey Link Generator</h1>
+        <p>Select store location & upload your sales report file</p>
+    </header>
+
+    <div class="store-selector-card">
+        <div class="form-group">
+            <label for="storeSelect">Select KFC Store:</label>
+            <select id="storeSelect" onchange="updateStoreFields()">
+                <option value="K201">KFC - Jayanagar HS BGL (K201)</option>
+                <option value="K203">KFC - Total Mall Ma KempFort BGL (K203)</option>
+                <option value="K243" selected>KFC - Bannerghatta (K243)</option>
+                <option value="K279">KFC - Vega City Mall BGL (K279)</option>
+                <option value="K293">KFC - BTM Layout Bangalore (K293)</option>
+                <option value="K486">KFC - Gottigere (K486)</option>
+                <option value="K770">KFC - Hulimavu (K770)</option>
+            </select>
+        </div>
+
+        <div class="grid-3">
+            <div class="form-group">
+                <label>Champ ID:</label>
+                <input type="text" id="champId" value="91KDIPL551-01" readonly>
+            </div>
+            <div class="form-group">
+                <label>Store SAP Code:</label>
+                <input type="text" id="sapCode" value="K243" readonly>
+            </div>
+            <div class="form-group">
+                <label>RGM Name:</label>
+                <input type="text" id="rgmName" value="Ain Uddin T" readonly>
+            </div>
+        </div>
+    </div>
+
+    <div class="upload-card">
+        <h3>Upload KFC Sales Excel File (.xlsx / .xls)</h3>
+        <p style="color: #666; font-size: 13px; margin-bottom: 10px;">Supported headers: Customer No., Order ID, Sales Type, Date, Time, Phone Number</p>
+        <label for="excelFile" class="custom-file-btn">Choose Excel File</label>
+        <input type="file" id="excelFile" accept=".xlsx, .xls">
+        <div id="fileName" style="margin-top: 10px; font-size: 13px; color: #555;"></div>
+    </div>
+
+    <div class="toolbar">
+        <input type="text" id="searchInput" class="search-box" placeholder="Search orders, phone numbers..." onkeyup="filterTable()">
+        <div class="btn-group">
+            <button class="btn-secondary" onclick="copyAllLinks()">Copy All Links</button>
+            <button class="btn-success" onclick="exportToExcel()">Export Excel Result</button>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table id="outputTable">
+            <thead>
+                <tr>
+                    <th>Customer No.</th>
+                    <th>Order ID</th>
+                    <th>Sales Type</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Phone</th>
+                    <th>Generated Survey Link</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="8" class="empty-state">No sales data loaded yet. Upload an Excel file above to generate links.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const STORES = {
+        "K201": { champId: "91KDIPL523-01", sap: "K201", rgm: "Sandeep" },
+        "K203": { champId: "91KDIPL560-01", sap: "K203", rgm: "-" },
+        "K243": { champId: "91KDIPL551-01", sap: "K243", rgm: "Ain Uddin T" },
+        "K279": { champId: "91KDIPL586-01", sap: "K279", rgm: "Arun" },
+        "K293": { champId: "91KDIPL596-01", sap: "K293", rgm: "Hemant" },
+        "K486": { champId: "91KDIPL750-01", sap: "K486", rgm: "Prabhu" },
+        "K770": { champId: "91KDIPL1003-01", sap: "K770", rgm: "Ansaar Peera" }
+    };
+
+    const BASE_SURVEY_URL = "https://customer.kfc-listens.com/jfe/form/SV_8bHC0noyvM3jPWC";
+    let currentData = [];
+
+    function updateStoreFields() {
+        const select = document.getElementById('storeSelect');
+        const store = STORES[select.value];
+        if (store) {
+            document.getElementById('champId').value = store.champId;
+            document.getElementById('sapCode').value = store.sap;
+            document.getElementById('rgmName').value = store.rgm;
+            if (currentData.length > 0) processRows(currentData);
+        }
+    }
+
+    function formatExcelDate(val) {
+        if (!val) return '2026-09-02';
+        if (typeof val === 'number') {
+            const dateObj = XLSX.SSF.parse_date_code(val);
+            return `${dateObj.y}-${String(dateObj.m).padStart(2, '0')}-${String(dateObj.d).padStart(2, '0')}`;
+        }
+        if (val instanceof Date) {
+            return `${val.getFullYear()}-${String(val.getMonth() + 1).padStart(2, '0')}-${String(val.getDate()).padStart(2, '0')}`;
+        }
+        const strVal = String(val).trim();
+        if (strVal.match(/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}$/)) {
+            const parts = strVal.split(/[\/\-]/);
+            let year = parts[2].length === 2 ? '20' + parts[2] : parts[2];
+            return `${year}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+        }
+        return strVal.split('T')[0].split(' ')[0];
+    }
+
+    function formatExcelTime(val) {
+        if (!val) return '14:24:14';
+        if (typeof val === 'number') {
+            const totalSeconds = Math.round(val * 86400);
+            const h = String(Math.floor(totalSeconds / 3600) % 24).padStart(2, '0');
+            const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+            const s = String(totalSeconds % 60).padStart(2, '0');
+            return `${h}:${m}:${s}`;
+        }
+        if (val instanceof Date) {
+            return `${String(val.getHours()).padStart(2, '0')}:${String(val.getMinutes()).padStart(2, '0')}:${String(val.getSeconds()).padStart(2, '0')}`;
+        }
+        let strVal = String(val).trim();
+        if (strVal.includes('T')) strVal = strVal.split('T')[1];
+        if (strVal.includes(' ')) strVal = strVal.split(' ').find(p => p.includes(':')) || strVal;
+        return strVal.split('.')[0];
+    }
+
+    function getOrderTypeId(salesTypeStr) {
+        const cleanStr = String(salesTypeStr || '').trim().toLowerCase();
+        if (cleanStr.includes('dine')) return "1";
+        if (cleanStr.includes('take') || cleanStr.includes('carry')) return "2";
+        if (cleanStr.includes('deliv')) return "3";
+        if (cleanStr.includes('drive')) return "4";
+        return !isNaN(cleanStr) && cleanStr !== '' ? cleanStr : "1";
+    }
+
+    function getPhoneFromRow(row) {
+        const possibleHeaders = ['Sell-to Contact No.', 'Sell-to Contact No', 'Phone', 'Phone Number', 'PhoneNo', 'Mobile', 'PH'];
+        for (let header of possibleHeaders) {
+            if (row[header] !== undefined && row[header] !== null && String(row[header]).trim() !== '') {
+                return String(row[header]).trim();
+            }
+        }
+        return '';
+    }
+
+    function getCustomerNo(row) {
+        const possibleHeaders = ['Customer No.', 'Customer No', 'CustomerNo', 'Cust No'];
+        for (let header of possibleHeaders) {
+            if (row[header] !== undefined && row[header] !== null && String(row[header]).trim() !== '') {
+                return String(row[header]).trim();
+            }
+        }
+        return '';
+    }
+
+    document.getElementById('excelFile').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        document.getElementById('fileName').textContent = `Loaded file: ${file.name}`;
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const data = new Uint8Array(event.target.result);
+            const workbook = XLSX.read(data, { type: 'array', raw: true });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            currentData = XLSX.utils.sheet_to_json(firstSheet, { raw: true });
+            processRows(currentData);
+        };
+        reader.readAsArrayBuffer(file);
+    });
+
+    function processRows(rows) {
+        const tbody = document.querySelector('#outputTable tbody');
+        tbody.innerHTML = '';
+
+        const champId = document.getElementById('champId').value;
+        let validRowsCount = 0;
+
+        rows.forEach(row => {
+            const customerNo = getCustomerNo(row);
+            if (!customerNo) return;
+
+            validRowsCount++;
+
+            const orderId = String(row['Order ID'] || row['Receipt No.'] || row['Check No'] || '');
+            const rawSalesType = String(row['Sales Type'] || row['Order Type'] || 'Dine-In');
+            const orderTypeId = getOrderTypeId(rawSalesType);
+
+            const dateStr = formatExcelDate(row['Date'] || row['Order Date'] || row['Posting Date']);
+            const timeStr = formatExcelTime(row['Time'] || row['Order Time'] || row['Check Time']);
+            const phoneStr = getPhoneFromRow(row);
+
+            const payload = {
+                "S": champId,
+                "OI": orderId,
+                "D": dateStr,
+                "TM": `${timeStr}.000`,
+                "DTM": `${dateStr}T${timeStr}.000Z`,
+                "TI": "",
+                "OT": orderTypeId,
+                "SM": "6.0",
+                "PH": phoneStr
+            };
+
+            const finalSurveyUrl = `${BASE_SURVEY_URL}?Q_EED=${btoa(JSON.stringify(payload))}`;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${customerNo}</td>
+                <td>${orderId}</td>
+                <td>${rawSalesType} (OT: ${orderTypeId})</td>
+                <td>${dateStr}</td>
+                <td>${timeStr}</td>
+                <td>${phoneStr}</td>
+                <td><a href="${finalSurveyUrl}" target="_blank" class="link-text">Survey Link</a></td>
+                <td><button class="copy-btn" onclick="navigator.clipboard.writeText('${finalSurveyUrl}')">Copy Link</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        if (validRowsCount === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="empty-state">No valid customer rows found in the uploaded file.</td></tr>`;
+        }
+    }
+
+    function filterTable() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const rows = document.querySelectorAll('#outputTable tbody tr');
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+        });
+    }
+
+    function copyAllLinks() {
+        const links = Array.from(document.querySelectorAll('#outputTable tbody a')).map(a => a.href);
+        if (links.length === 0) return alert('No links to copy!');
+        navigator.clipboard.writeText(links.join('\n'));
+        alert(`Copied ${links.length} survey links to clipboard!`);
+    }
+
+    function exportToExcel() {
+        const table = document.getElementById('outputTable');
+        const wb = XLSX.utils.table_to_book(table, { sheet: "Survey Links" });
+        XLSX.writeFile(wb, "KFC_Survey_Links.xlsx");
+    }
+</script>
+
+</body>
+</html>
